@@ -1,5 +1,3 @@
-# Descrição !!!! TODO !!!
-
-## Executando no Windows
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\venv\Scripts\Activate.ps1
+Respondendo duas possíveis perguntas:
+- Por que retornos e não preços? Os preços de uma ação podem ser interpretados como um passeio aleatório, comportamento de dados em que geralmente o melhor modelo para prever o próximo passo é simplesmente repetir o anterior. Random walks tem alta correlação entre a série e a própria série atrasada, indicando que o passado seria útil para prever o futuro, mas a correlação tem mais a ver com a tendência entre pontos do que com poder preditivo real, e essa correlação é um "exploit" fácil para modelos aprenderem sem resultar em uma previsão de fato útil, apenas com erro baixo. Uma série de retornos, estacionária, não tem correlação significante com ela mesma, portanto removendo a possibilidade do exploit e permitindo tomar a decisão de comprar ou vender uma ação baseando-se nos movimentos dela, e melhor ainda se for utilizada uma classificação dos movimentos em vez de uma previsão numérica dos retornos, o que leva à próxima questão.
+- Por que classificação e não regressão? Como indicado por (Enke, 2005) https://www.sciencedirect.com/science/article/abs/pii/S0957417405001156, uma estratégia baseada em classificação da direção dos retornos tem um melhor ganho ajustado ao risco. Uma classificação positiva ou negativa em relação a se uma ação terá retorno positivo ou negativo transforma a saída do modelo em uma informação acionável, além de que tentar prever um valor numérico em uma série altamente volátil é mais difícil do que apenas dizer a direção do retorno, e levaria a um erro de regressão maior.
