@@ -1,4 +1,4 @@
-from scipy.stats import shapiro, pearsonr, kruskal, probplot, anderson, levene, bartlett, kstest, ttest_1samp, wilcoxon
+from scipy.stats import shapiro, pearsonr, kruskal, probplot, anderson, levene, bartlett, kstest, ttest_1samp, wilcoxon, ttest_ind
 from statsmodels.tsa.stattools import adfuller
 import numpy as np
 
@@ -55,17 +55,31 @@ def anderson_darling_gaussian_test(data):
     
     return ad_stat, p_value[2]
 
-def ttest(buy_and_hold_sharpe, sharpes_distribution):
-    t_stat, p_value = ttest_1samp(sharpes_distribution, buy_and_hold_sharpe, alternative="less")  # less -> dist mean is less than hypothesized value
+def ttest_1(group, hypothesized_value):
+    t_stat, p_value = ttest_1samp(group, hypothesized_value, alternative="less")  # less -> dist mean is less than hypothesized value
 
     print(f"t-stat: {t_stat:.4f}")
     print(f"P-value: {p_value:.4f}")
 
     alpha = 0.05
     if p_value < alpha:
-        print("Reject H0: the evidence shows that the Sharpes' mean is less than B&H")
+        print("Reject H0: the evidence shows that the two groups differ in means")
     else:
-        print("Do not reject H0: there is not enough evidence to support the claim that B&H is superior to the model mean")
+        print("Do not reject H0: there is not enough evidence to support the alternative that the first group's mean is less than the second")
+    
+    return p_value
+
+def ttest_2(group, hypothesized_group, alternative, equal_variances):
+    t_stat, p_value = ttest_ind(group, hypothesized_group, alternative=alternative, equal_var=equal_variances)  # greater -> dist mean is greater than hypothesized value or group
+
+    print(f"t-stat: {t_stat:.4f}")
+    print(f"P-value: {p_value:.4f}")
+
+    alpha = 0.05
+    if p_value < alpha:
+        print(f"Reject H0: the evidence shows that the two groups differ in means for alternative {alternative}")
+    else:
+        print(f"Do not reject H0: there is not enough evidence to support the alternative that the first group's mean is {alternative} than the second")
     
     return p_value
 
@@ -82,14 +96,41 @@ def kruskal_wallis_test(groups):
     else:
         print(f"There is NOT a significant difference between groups for an alpha of {alpha}")
 
-def wilcoxon_signed_rank(group, hypothesized_value):
-    w_stat, p_value = wilcoxon(group - hypothesized_value, alternative='less')
+def wilcoxon_signed_rank(group, hypothesized_value, alternative):
+    w_stat, p_value = wilcoxon(np.array(group) - np.array(hypothesized_value), alternative=alternative)
 
     print(f"W statistic: {w_stat}")
     print(f"p-value: {p_value}")
 
     alpha = 0.05
     if p_value < alpha:
-        print("Reject H0: the evidence shows that the Sharpes' mean is less than B&H")
+        print(f"Reject H0: the evidence shows that the two groups differ in means for alternative {alternative}")
     else:
-        print("Do not reject H0: there is not enough evidence to support the claim that B&H is superior to the model mean")
+        print(f"Do not reject H0: there is not enough evidence to support the alternative that the first group's mean is {alternative} than the second")
+
+def levene_variances(groups):
+    lev_stat, lev_p_value = levene(*groups)
+
+    alpha = 0.05
+
+    print(f"Levene's Test statistic: {lev_stat}, p-value: {lev_p_value}")
+
+    if lev_p_value < alpha:
+        print("Variances are significantly different (reject null hypothesis).")
+    else:
+        print("No significant difference in variances (fail to reject null hypothesis).")
+
+    return lev_stat, lev_p_value
+
+def bartlett_variances(groups):
+    bartlett_stat, bart_p_value = bartlett(*groups)
+
+    print(f"Bartlett's Test statistic: {bartlett_stat}, p-value: {bart_p_value}")
+
+    alpha = 0.05
+    if bart_p_value < alpha:
+        print("Variances are significantly different (reject null hypothesis).")
+    else:
+        print("No significant difference in variances (fail to reject null hypothesis).")
+
+    return bartlett_stat, bart_p_value
