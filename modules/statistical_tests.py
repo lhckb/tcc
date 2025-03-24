@@ -1,4 +1,4 @@
-from scipy.stats import shapiro, pearsonr, kruskal, probplot, anderson, levene, bartlett, kstest, ttest_1samp, wilcoxon, ttest_ind
+from scipy.stats import shapiro, pearsonr, kruskal, probplot, anderson, levene, bartlett, kstest, ttest_1samp, wilcoxon, ttest_ind, norm
 from statsmodels.tsa.stattools import adfuller
 import numpy as np
 
@@ -134,3 +134,21 @@ def bartlett_variances(groups):
         print("No significant difference in variances (fail to reject null hypothesis).")
 
     return bartlett_stat, bart_p_value
+
+def pttest(y, yhat):
+    """Given NumPy arrays with predictions and with true values, 
+    return Directional Accuracy Score, Pesaran-Timmermann statistic and its p-value
+    """
+    size = y.shape[0]
+    pyz = np.sum(np.sign(y) == np.sign(yhat))/size
+    py = np.sum(y > 0)/size
+    qy = py*(1 - py)/size
+    pz = np.sum(yhat > 0)/size
+    qz = pz*(1 - pz)/size
+    p = py*pz + (1 - py)*(1 - pz)
+    v = p*(1 - p)/size
+    w = ((2*py - 1)**2) * qz + ((2*pz - 1)**2) * qy + 4*qy*qz
+    pt = (pyz - p) / (np.sqrt(v - w))
+    pval = 1 - norm.cdf(pt, 0, 1)
+
+    return pyz, pt, pval
