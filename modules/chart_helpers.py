@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+plt.rcParams["figure.dpi"] = 300
+plt.rcParams["boxplot.medianprops.color"] = "black"
 import pandas as pd
 import matplotlib.colors as mcolors
 import colorsys
@@ -18,15 +20,15 @@ def adjust_saturation(color, saturation_factor=0.5):
     new_rgb = colorsys.hls_to_rgb(h, l, s * saturation_factor)  # Modify saturation
     return new_rgb
 
-sat = 0.45
+sat = 0.4
 model_colors = {
     "LSTM": adjust_saturation("blue", sat),
     "GRU": adjust_saturation("orange", sat),
-    "RNN": adjust_saturation("green", sat),
-    "RF": adjust_saturation("red", sat),
-    "RG": adjust_saturation("purple", sat),
+    "RNR": adjust_saturation("green", sat),
+    "FA": adjust_saturation("red", sat),
+    "MA": adjust_saturation("purple", sat),
     "B&H": adjust_saturation("grey", sat),
-    "Ensemble": adjust_saturation("yellow", sat),
+    "Comitê": adjust_saturation("yellow", sat),
 }
 
 def plot_many_returns_series(series, labels, index, colors, title="Portfolio Comparison between Buy & Hold and Model"):
@@ -37,13 +39,14 @@ def plot_many_returns_series(series, labels, index, colors, title="Portfolio Com
     for i_pos, cuml_series in enumerate(series):
         plt.plot(index, cuml_series, label = labels[i_pos], linestyle='-', color=colors[i_pos])
     plt.title(title)
+    plt.grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
     plt.legend()
 
     for i_pos, cuml_series in enumerate(series):
         max_idx = -1
 
         plt.annotate(
-            f"{cuml_series.to_numpy()[max_idx]}",
+            f"{cuml_series.to_numpy()[max_idx]:.4f}",
             (cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx]),
             xytext=(cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx] + 0.5),
             arrowprops=dict(facecolor=colors[i_pos], arrowstyle='->'),
@@ -52,7 +55,7 @@ def plot_many_returns_series(series, labels, index, colors, title="Portfolio Com
 
     plt.plot()
 
-def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNN", "RF", "RG"]):
+def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"]):
     fig, axes = plt.subplots(1, 2, figsize=(25, 10))
 
     labels = [models[i] for i in range(len(all_data))]
@@ -68,7 +71,8 @@ def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNN",
     for patch, model in zip(box['boxes'], labels):
         patch.set_facecolor(model_colors.get(model, "black"))  # Use black if model is not in dictionary
 
-    axes[0].set_title(f'Boxplot of {metric}')
+    axes[0].set_title(f'Boxplot de {metric}')
+    axes[0].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
 
     # --- Bar Chart ---
     std_devs = [np.array(model).std() for model in all_data]
@@ -87,23 +91,24 @@ def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNN",
             ha='center', va='bottom'
         )
 
-    axes[1].set_title(f'Standard Deviations of {metric}')
+    axes[1].set_title(f'Desvios padrão de {metric}')
+    axes[1].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
 
     plt.tight_layout()
     plt.show()
 
-def print_statistics_table_for_series(all_data, models = ["LSTM", "GRU", "RNN", "RF", "RG"]):
-    table = PrettyTable(["model", "mean", "median", "max", "min", "stddev", "full range"])
+def print_statistics_table_for_series(all_data, models = ["LSTM", "GRU", "RNR", "FA", "MA"]):
+    table = PrettyTable(["modelo", "média", "mediana", "max", "min", "desvio padrão", "range"])
 
     for series, model in zip(all_data, models):
         table.add_row([
             model,
-            np.array(series).mean(),
-            np.median(np.array(series)),
-            np.array(series).max(),
-            np.array(series).min(),
-            np.array(series).std(),
-            np.array(series).max() - np.array(series).min()
+            f"{np.array(series).mean():.4f}",
+            f"{np.median(np.array(series)):.4f}",
+            f"{np.array(series).max():.4f}",
+            f"{np.array(series).min():.4f}",
+            f"{np.array(series).std():.4f}",
+            f"{(np.array(series).max() - np.array(series).min()):.4f}"
         ])
     
     print(table)
@@ -112,7 +117,7 @@ def print_class_distributions_for_experiment(experiments, best_idx, model, stock
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     axes = axes.flatten()
 
-    fig.suptitle(f"Class distributions for best {model} experiment")
+    fig.suptitle(f"Distribuição de classes para {model}")
 
     for i, col in enumerate(stocks):
         best_pred_series = pd.Series(list(item.values())[0] for item in experiments[best_idx][col][1])
@@ -125,12 +130,12 @@ def print_class_distributions_for_experiment(experiments, best_idx, model, stock
                 f'{height}',
                 ha='center', va='bottom'
             )
-        axes[i].set_title(f"class distribution for {col.upper()}")
+        axes[i].set_title(f"Distribuição de classes para {col.upper()}")
 
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
 
-def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNN", "RF", "RG", "Ensemble"]):
+def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNR", "FA", "MA", "Comitê"]):
     fig, axes = plt.subplots(1, 2, figsize=(25, 10))
 
     labels = [models[i] for i in range(len(means))]
@@ -153,6 +158,7 @@ def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNN", 
         )
 
     axes[0].set_title(f'Mean of {metric}')
+    axes[0].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
 
     # --- Std Dev Bar Chart ---
     bars = axes[1].bar(
@@ -172,6 +178,7 @@ def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNN", 
         )
 
     axes[1].set_title(f'Standard Deviations of {metric}')
+    axes[1].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
 
     plt.tight_layout()
     plt.show()
