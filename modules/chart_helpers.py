@@ -20,43 +20,52 @@ def adjust_saturation(color, saturation_factor=0.5):
     new_rgb = colorsys.hls_to_rgb(h, l, s * saturation_factor)  # Modify saturation
     return new_rgb
 
-sat = 0.4
+sat = 0.8
+
+blue_shades = ["#1E3A8A", "#2563EB", "#6fd4fc", "#082340"]  # Tons de azul do mais escuro ao mais claro
+
 model_colors = {
-    "LSTM": adjust_saturation("blue", sat),
-    "GRU": adjust_saturation("orange", sat),
-    "RNR": adjust_saturation("green", sat),
-    "FA": adjust_saturation("red", sat),
-    "MA": adjust_saturation("purple", sat),
+    "LSTM": adjust_saturation(blue_shades[0], sat),
+    "GRU": adjust_saturation(blue_shades[1], sat),
+    "RNR": adjust_saturation(blue_shades[2], sat),
+    "Comitê": adjust_saturation(blue_shades[3], sat),
+    "FA": adjust_saturation("#0ecc64", sat),
+    "MA": adjust_saturation("#864ae0", sat),
     "B&H": adjust_saturation("grey", sat),
-    "Comitê": adjust_saturation("yellow", sat),
 }
 
 def plot_many_returns_series(series, labels, index, colors, title="Portfolio Comparison between Buy & Hold and Model"):
     if len(series) > 6:
         raise Exception("Cannot handle more than 6 series")
     
-    plt.figure(figsize=(25, 10))
+    plt.figure(figsize=(20, 7.5))
     for i_pos, cuml_series in enumerate(series):
         plt.plot(index, cuml_series, label = labels[i_pos], linestyle='-', color=colors[i_pos])
     plt.title(title)
     plt.grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
-    plt.legend()
+    plt.legend(fontsize=12, loc="upper left")
 
     for i_pos, cuml_series in enumerate(series):
         max_idx = -1
-
+        max_value = cuml_series.to_numpy()[max_idx]
+        max_x = cuml_series.index[max_idx]
+        
+        # Traçar linha pontilhada
+        plt.axhline(y=max_value, color=colors[i_pos], linestyle='dotted', linewidth=1)
+        
         plt.annotate(
-            f"{cuml_series.to_numpy()[max_idx][0]:.4f}",
-            (cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx]),
-            xytext=(cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx] + 0.15),
-            # arrowprops=dict(facecolor=colors[i_pos], arrowstyle='->'),
+            f"{max_value[0]:.4f}",
+            xy=(max_x, max_value),
+            xytext=(max_x + (index[-1] - index[0]) * 0.02, max_value),  # Deslocamento para a direita
+            ha='left', va='center',
             color=colors[i_pos],
+            bbox=dict(facecolor='white', edgecolor=colors[i_pos], boxstyle='round,pad=0.3')
         )
 
     plt.plot()
 
-def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"]):
-    fig, axes = plt.subplots(1, 2, figsize=(25, 10))
+def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"], legend_loc="best"):
+    fig, axes = plt.subplots(1, 2, figsize=(20, 7.5))
 
     labels = [models[i] for i in range(len(all_data))]
 
@@ -73,6 +82,12 @@ def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR",
 
     axes[0].set_title(f'Boxplot de {metric}')
     axes[0].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
+    handles = [
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=model_colors[model], markersize=12, label=model) for model in models
+    ]
+    axes[0].legend(handles=handles, loc=legend_loc, fontsize=12)
+    axes[0].set_xticks([])
+    axes[0].set_xticklabels([])
 
     # --- Bar Chart ---
     std_devs = [np.array(model).std() for model in all_data]
@@ -92,7 +107,7 @@ def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR",
         )
 
     axes[1].set_title(f'Desvios padrão de {metric}')
-    axes[1].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
+    
 
     plt.tight_layout()
     plt.show()
@@ -178,7 +193,7 @@ def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNR", 
         )
 
     axes[1].set_title(f'Standard Deviations of {metric}')
-    axes[1].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
+    
 
     plt.tight_layout()
     plt.show()
