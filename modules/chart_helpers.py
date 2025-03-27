@@ -32,8 +32,8 @@ model_colors = {
 }
 
 def plot_many_returns_series(series, labels, index, colors, title="Portfolio Comparison between Buy & Hold and Model"):
-    if len(series) > 4:
-        raise Exception("Cannot handle more than 4 series")
+    if len(series) > 6:
+        raise Exception("Cannot handle more than 6 series")
     
     plt.figure(figsize=(25, 10))
     for i_pos, cuml_series in enumerate(series):
@@ -46,10 +46,10 @@ def plot_many_returns_series(series, labels, index, colors, title="Portfolio Com
         max_idx = -1
 
         plt.annotate(
-            f"{cuml_series.to_numpy()[max_idx]:.4f}",
+            f"{cuml_series.to_numpy()[max_idx][0]:.4f}",
             (cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx]),
-            xytext=(cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx] + 0.5),
-            arrowprops=dict(facecolor=colors[i_pos], arrowstyle='->'),
+            xytext=(cuml_series.index[max_idx], cuml_series.to_numpy()[max_idx] + 0.15),
+            # arrowprops=dict(facecolor=colors[i_pos], arrowstyle='->'),
             color=colors[i_pos],
         )
 
