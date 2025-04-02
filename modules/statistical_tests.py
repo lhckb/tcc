@@ -96,6 +96,32 @@ def kruskal_wallis_test(groups):
     else:
         print(f"There is NOT a significant difference between groups for an alpha of {alpha}")
 
+# def dunn_posthoc():
+# data = np.concatenate([dist for dist in list_of_sharpes])
+# groups = (["LSTM"] * len(lstm_sharpes_1) + ["GRU"] * len(gru_sharpes_1) +
+#           ["RNR"] * len(rnn_sharpes_1) + ["FA"] * len(rf_sharpes_1))
+
+# df = pd.DataFrame({"Value": data, "Group": groups})
+
+# # Dunn’s post hoc test with Bonferroni correction
+# posthoc = sp.posthoc_dunn(df, val_col="Value", group_col="Group", p_adjust="bonferroni")
+
+# # Define custom colormap: Green for p < 0.5, Red otherwise
+# cmap = sns.color_palette(["green", "red"])
+
+# # Create a binary mask (0 if p < 0.5, 1 otherwise)
+# binary_mask = posthoc < 0.05
+
+# # Convert binary mask to numeric values (0 = green, 1 = red)
+# heatmap_data = binary_mask.astype(int)
+
+# # Plot heatmap
+# plt.figure(figsize=(6,5))
+# ax = sns.heatmap(posthoc, annot=True, fmt=".3f", cmap=cmap, cbar=False, mask=np.triu(np.ones_like(posthoc, dtype=bool)))
+# plt.title("Dunn's Test P-values Heatmap")
+# plt.show()
+
+
 def wilcoxon_signed_rank(group, hypothesized_value, alternative):
     w_stat, p_value = wilcoxon(np.array(group) - np.array(hypothesized_value), alternative=alternative)
 

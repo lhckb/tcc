@@ -1,5 +1,6 @@
 .DS_Store
 results/
+results_1/
 results_v1_10runs/
 results_v2_180_wrong_scaling/
 results_v3_60runs_dataleakage/

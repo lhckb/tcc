@@ -2,12 +2,13 @@ import pandas as pd
 import numpy as np
 
 def compute_sharpe_ratio(portfolio_daily_returns):
-    risk_free_daily_rate = ((1 + 0.10) ** (1 / 252)) - 1  # considering SELIC at an arbitrary avg of 10% year over 252 trading days
+    risk_free_daily_rate = ((1 + 0.0975) ** (1 / 252)) - 1  # considering SELIC at an arbitrary avg of 10% year over 252 trading days
 
-    avg_return = portfolio_daily_returns.mean()
-    std_dev_return = portfolio_daily_returns.std(ddof=1)
+    d = portfolio_daily_returns - risk_free_daily_rate
+    d_mu = d.mean()
+    d_std = d.std(ddof=1)
 
-    return (avg_return - risk_free_daily_rate) / std_dev_return
+    return (d_mu) / d_std
 
 def compute_buyandhold_cumulative_returns(returns_series):
     # Define equal weights for each stock

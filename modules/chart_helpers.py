@@ -6,6 +6,7 @@ import matplotlib.colors as mcolors
 import colorsys
 from prettytable import PrettyTable
 import numpy as np
+import matplotlib.patheffects as pe
 
 def print_line_series(df: pd.DataFrame, title: str = "Series"):
     plt.figure(figsize=(15, 5))
@@ -20,94 +21,110 @@ def adjust_saturation(color, saturation_factor=0.5):
     new_rgb = colorsys.hls_to_rgb(h, l, s * saturation_factor)  # Modify saturation
     return new_rgb
 
-sat = 0.8
+sat = 1
 
-blue_shades = ["#1E3A8A", "#2563EB", "#6fd4fc", "#082340"]  # Tons de azul do mais escuro ao mais claro
+# blue_shades = ["#F0F8FF", "#6CB4EE", "#0066b2", "#00308F"]
+blue_shades = ["#B9F3FC", "#AEE2FF", "#93C6E7", "#578FCA"]
 
 model_colors = {
-    "LSTM": adjust_saturation(blue_shades[0], sat),
-    "GRU": adjust_saturation(blue_shades[1], sat),
-    "RNR": adjust_saturation(blue_shades[2], sat),
-    "Comitê": adjust_saturation(blue_shades[3], sat),
-    "FA": adjust_saturation("#0ecc64", sat),
-    "MA": adjust_saturation("#864ae0", sat),
+    "LSTM": adjust_saturation(blue_shades[1], sat),
+    "GRU": adjust_saturation(blue_shades[2], sat),
+    "RNR": adjust_saturation(blue_shades[3], sat),
+    "Comitê": adjust_saturation(blue_shades[0], sat),
+    "FA": adjust_saturation("#C8FFD4", sat),
+    "MA": adjust_saturation("#B1AFFF", sat),
     "B&H": adjust_saturation("grey", sat),
 }
 
-def plot_many_returns_series(series, labels, index, colors, title="Portfolio Comparison between Buy & Hold and Model"):
-    if len(series) > 6:
-        raise Exception("Cannot handle more than 6 series")
+# def plot_many_returns_series(series, labels, index, colors, title="Portfolio Comparison between Buy & Hold and Model"):
+#     if len(series) > 6:
+#         raise Exception("Cannot handle more than 6 series")
     
-    plt.figure(figsize=(20, 7.5))
+#     plt.figure(figsize=(15, 7.5))
+#     for i_pos, cuml_series in enumerate(series):
+#         line = plt.plot(index, cuml_series, label = labels[i_pos], linestyle='-', color=colors[i_pos])
+#         line[0].set_path_effects([pe.Stroke(linewidth=1.75, foreground='black'), pe.Normal()])
+#     plt.title(title)
+#     # plt.grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
+#     plt.legend(fontsize=12, loc="upper left", facecolor="white", framealpha=1)
+
+#     for i_pos, cuml_series in enumerate(series):
+#         max_idx = -1
+#         max_value = cuml_series.to_numpy()[max_idx]
+#         max_x = cuml_series.index[max_idx]
+        
+#         # Traçar linha pontilhada
+#         plt.axhline(y=max_value, color=colors[i_pos], linestyle='dotted', linewidth=1, zorder=0)
+        
+#         plt.annotate(
+#             f"{max_value[0]:.4f}",
+#             xy=(max_x, max_value),
+#             xytext=(max_x + (index[-1] - index[0]) * 0.02, max_value),  # Deslocamento para a direita
+#             ha='left', va='center',
+#             color=colors[i_pos],
+#             bbox=dict(facecolor='white', edgecolor=colors[i_pos], boxstyle='round,pad=0.3'),
+#             path_effects=[pe.withStroke(linewidth=1.15, foreground="black")]
+#         )
+
+#     plt.plot()
+
+def plot_many_returns_series(series, labels, index, colors, title="Portfolio Comparison between Buy & Hold and Model"):
+    fig, ax = plt.subplots(figsize=(15, 7.5))
+    
     for i_pos, cuml_series in enumerate(series):
-        plt.plot(index, cuml_series, label = labels[i_pos], linestyle='-', color=colors[i_pos])
-    plt.title(title)
+        line = ax.plot(index, cuml_series, label=labels[i_pos], linestyle='-', color=colors[i_pos])
+        line[0].set_path_effects([pe.Stroke(linewidth=1.7, foreground='grey'), pe.Normal()])
+
+    ax.set_title(title)
+    ax.legend(fontsize=12, loc="upper left", facecolor="white", framealpha=1)
+
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
     plt.grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
-    plt.legend(fontsize=12, loc="upper left")
+
+    max_values = []
 
     for i_pos, cuml_series in enumerate(series):
         max_idx = -1
         max_value = cuml_series.to_numpy()[max_idx]
         max_x = cuml_series.index[max_idx]
         
-        # Traçar linha pontilhada
-        plt.axhline(y=max_value, color=colors[i_pos], linestyle='dotted', linewidth=1)
-        
-        plt.annotate(
-            f"{max_value[0]:.4f}",
-            xy=(max_x, max_value),
-            xytext=(max_x + (index[-1] - index[0]) * 0.02, max_value),  # Deslocamento para a direita
-            ha='left', va='center',
-            color=colors[i_pos],
-            bbox=dict(facecolor='white', edgecolor=colors[i_pos], boxstyle='round,pad=0.3')
-        )
+        # ax.axhline(y=max_value, color=colors[i_pos], linestyle='dotted', linewidth=1, zorder=0)
 
-    plt.plot()
+        max_values.append(max_value[0])
+    
+    plt.margins(0)
+    plt.show()
 
-def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"], legend_loc="best"):
-    fig, axes = plt.subplots(1, 2, figsize=(20, 7.5))
+def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"], legend_loc="best", legend_size=12):
+    plt.figure(figsize=(15, 10))
 
     labels = [models[i] for i in range(len(all_data))]
 
     # --- Boxplot ---
-    box = axes[0].boxplot(
+    box = plt.boxplot(
         all_data, 
         labels=labels,
         patch_artist=True  # Enable box fill colors
     )
 
+    ax = plt.gca()
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
     # Apply colors to boxplot
     for patch, model in zip(box['boxes'], labels):
         patch.set_facecolor(model_colors.get(model, "black"))  # Use black if model is not in dictionary
 
-    axes[0].set_title(f'Boxplot de {metric}')
-    axes[0].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
+    plt.title(f'Boxplot de {metric}', fontsize=legend_size)
+    plt.grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
     handles = [
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=model_colors[model], markersize=12, label=model) for model in models
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=model_colors[model], markersize=legend_size, label=model) for model in models
     ]
-    axes[0].legend(handles=handles, loc=legend_loc, fontsize=12)
-    axes[0].set_xticks([])
-    axes[0].set_xticklabels([])
-
-    # --- Bar Chart ---
-    std_devs = [np.array(model).std() for model in all_data]
-    bars = axes[1].bar(
-        labels,
-        std_devs, 
-        color=[model_colors.get(model, "black") for model in labels]
-    )
-
-    for bar in bars:
-        height = bar.get_height()
-        axes[1].text(
-            bar.get_x() + bar.get_width() / 2,
-            height,
-            f'{height:.4f}',
-            ha='center', va='bottom'
-        )
-
-    axes[1].set_title(f'Desvios padrão de {metric}')
-    
+    # plt.legend(handles=handles, loc=legend_loc, fontsize=legend_size)
+    plt.xticks(range(1, len(labels) + 1), labels, fontsize=legend_size)
+    plt.yticks(fontsize=legend_size)
 
     plt.tight_layout()
     plt.show()
@@ -150,7 +167,7 @@ def print_class_distributions_for_experiment(experiments, best_idx, model, stock
     for j in range(i + 1, len(axes)):
         fig.delaxes(axes[j])
 
-def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNR", "FA", "MA", "Comitê"]):
+def plot_mean_and_stddev(means, std_devs, metric, models=["Comitê", "LSTM", "GRU", "RNR", "FA", "MA"]):
     fig, axes = plt.subplots(1, 2, figsize=(25, 10))
 
     labels = [models[i] for i in range(len(means))]
@@ -173,7 +190,7 @@ def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNR", 
         )
 
     axes[0].set_title(f'Mean of {metric}')
-    axes[0].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
+    # axes[0].grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7)
 
     # --- Std Dev Bar Chart ---
     bars = axes[1].bar(
@@ -194,6 +211,57 @@ def plot_mean_and_stddev(means, std_devs, metric, models=["LSTM", "GRU", "RNR", 
 
     axes[1].set_title(f'Standard Deviations of {metric}')
     
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_grouped_boxplot(data, metric, stocks=["ABEV3", "BBDC3", "ITSA3", "ITUB3", "WEGE3"], 
+                         models=["Comitê", "LSTM", "GRU", "RNR", "FA"], legend_size=12):
+    """
+    Plots a grouped boxplot where X-axis represents stocks and each stock has 5 grouped models.
+    
+    Parameters:
+    - data: dict {stock: [list of 5 lists for models]}
+    - metric: str, metric name for the title
+    - stocks: list, stock names
+    - models: list, model names
+    - model_colors: dict, colors for each model
+    - legend_size: int, font size for labels
+    """
+
+    num_stocks = len(stocks)
+    num_models = len(models)
+    
+    # X positions for each stock, with small shifts for each model
+    x_positions = np.arange(num_stocks)
+    width = 0.15  # Width of each model box within a stock group
+    
+    plt.figure(figsize=(15, 8))
+
+    # Plot each model's data
+    for i, model in enumerate(models):
+        model_data = [data[stock][i] for stock in stocks]  # Extract model-specific data across stocks
+        positions = x_positions + (i - (num_models / 2)) * width  # Offset each model within the stock group
+        box = plt.boxplot(model_data, positions=positions, widths=width, patch_artist=True)
+
+        # Apply colors
+        for patch in box['boxes']:
+            patch.set_facecolor(model_colors[model])
+
+    plt.xticks(x_positions, stocks, fontsize=legend_size)  # Set stock names as X-ticks
+    plt.yticks(fontsize=legend_size)
+    plt.grid(True, axis='y', linestyle="--", linewidth=0.5, alpha=0.7)
+
+    ax = plt.gca()
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    # Create legend
+    handles = [plt.Line2D([0], [0], marker='s', color='w', markerfacecolor=model_colors[m], markersize=10, label=m) 
+               for m in models]
+    plt.legend(handles=handles, loc="lower right", fontsize=legend_size)
+
+    plt.title(f'Boxplot de {metric} por Ação', fontsize=legend_size + 2)
 
     plt.tight_layout()
     plt.show()
