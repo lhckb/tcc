@@ -97,7 +97,7 @@ def plot_many_returns_series(series, labels, index, colors, title="Portfolio Com
     plt.margins(0)
     plt.show()
 
-def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"], legend_loc="best", legend_size=12):
+def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR", "FA", "MA"], legend_loc="best", legend_size=12, benchmark_value=None, benchmark_color="red", benchmark_name="Benchmark"):
     plt.figure(figsize=(15, 10))
 
     labels = [models[i] for i in range(len(all_data))]
@@ -116,6 +116,20 @@ def plot_distribution_and_stddev(all_data, metric, models=["LSTM", "GRU", "RNR",
     # Apply colors to boxplot
     for patch, model in zip(box['boxes'], labels):
         patch.set_facecolor(model_colors.get(model, "black"))  # Use black if model is not in dictionary
+
+    # Plot benchmark line if provided
+    if benchmark_value is not None:
+        plt.axhline(y=benchmark_value, color=benchmark_color, linestyle='--', linewidth=1.5, zorder=2)
+        plt.text(
+            x=0.5, 
+            y=benchmark_value + 0.001, 
+            s=benchmark_name, 
+            color=benchmark_color, 
+            fontsize=12, 
+            ha='left', 
+            va='bottom', 
+            transform=ax.get_yaxis_transform()
+        )
 
     plt.title(f'Boxplot de {metric}', fontsize=legend_size)
     plt.grid(True, axis='y', linestyle="--", linewidth=0.4, alpha=0.7, zorder=1)
@@ -234,9 +248,9 @@ def plot_grouped_boxplot(data, metric, stocks=["ABEV3", "BBDC3", "ITSA3", "ITUB3
     
     # X positions for each stock, with small shifts for each model
     x_positions = np.arange(num_stocks)
-    width = 0.15  # Width of each model box within a stock group
+    width = 0.1  # Width of each model box within a stock group
     
-    plt.figure(figsize=(15, 8))
+    plt.figure(figsize=(24, 8))
 
     # Plot each model's data
     for i, model in enumerate(models):
@@ -259,7 +273,7 @@ def plot_grouped_boxplot(data, metric, stocks=["ABEV3", "BBDC3", "ITSA3", "ITUB3
     # Create legend
     handles = [plt.Line2D([0], [0], marker='s', color='w', markerfacecolor=model_colors[m], markersize=10, label=m) 
                for m in models]
-    plt.legend(handles=handles, loc="lower right", fontsize=legend_size)
+    plt.legend(handles=handles, loc="upper left", fontsize=legend_size)
 
     plt.title(f'Boxplot de {metric} por Ação', fontsize=legend_size + 2)
 
